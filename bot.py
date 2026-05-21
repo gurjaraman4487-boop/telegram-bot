@@ -153,7 +153,7 @@ async def show_qr(query, qr_image, amount, delivery_link):
 
         [InlineKeyboardButton("✅ I Have Paid", url=delivery_link)],
 
-        [InlineKeyboardButton("⬅ Back", callback_data="premium")]
+        [InlineKeyboardButton("⬅ Back", callback_data="back_to_plans")]
     ])
 
     await query.message.edit_media(
@@ -182,7 +182,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # HOME PAGE
     elif data == "home":
 
-        await home(update, context)
+        elif data == "back_to_plans":
+
+    await premium(update, context)
 
     # ₹99
     elif data == "p1":
