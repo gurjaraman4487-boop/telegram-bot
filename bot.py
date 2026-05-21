@@ -150,7 +150,7 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "👑 𝐕𝐈𝐋 𝐀𝐋𝐋 ( 𝟏𝟎𝟎𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹𝟒𝟗𝟗",
+                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 ( 𝟏𝟎𝟎𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹𝟒𝟗𝟗",
                 callback_data="p4"
             )
         ],
