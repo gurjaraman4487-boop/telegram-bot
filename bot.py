@@ -22,20 +22,36 @@ PREMIUM_IMAGE = "https://i.postimg.cc/x89kTfHG/IMG-20260521-164434-789.jpg"
 
 # ================= QR IMAGES =================
 QR_99 = "https://i.postimg.cc/C5tMMsbG/Screenshot-20260521-231011.png"
+
 QR_149 = "https://i.postimg.cc/DyXndsqs/Screenshot-20260521-231036.png"
+
 QR_249 = "https://i.postimg.cc/2SdYgD9Q/Screenshot-20260521-231058.png"
+
 QR_499 = "https://i.postimg.cc/MTH8cj6m/Screenshot-20260521-231113.png"
 
-# ================= LINKS =================
+# ================= DELIVERY LINKS =================
+LINK_99 = "https://t.me/bsbsjklalalala"
+
+LINK_149 = "https://t.me/najskalalalal"
+
+LINK_249 = "https://t.me/nakakalalal"
+
+LINK_499 = "https://t.me/nwkskalal"
+
+# ================= EXTRA LINKS =================
 DEMO_CHANNEL = "https://t.me/demochannlink"
+
 INFO_CHANNEL = "https://t.me/howtogetpre"
 
 
-# ================= START KEYBOARD =================
+# ================= START BUTTONS =================
 def start_keyboard():
+
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💎 Get Premium", callback_data="premium")],
+
         [InlineKeyboardButton("🎬 Demo Videos", url=DEMO_CHANNEL)],
+
         [InlineKeyboardButton("📖 How To Get Premium", url=INFO_CHANNEL)],
     ])
 
@@ -44,19 +60,19 @@ def start_keyboard():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     caption = (
-        "<b>🎬 𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐕𝐢𝐝𝐞𝐨𝐬 𝐂𝐨𝐥𝐥𝐞𝐜𝐭𝐢𝐨𝐧</b>\n\n"
+        "<b>🎬 Available Videos Collection</b>\n\n"
 
-        "<b>➊ 𝐌𝐎𝐌 𝐒𝐨𝐧 𝐕𝐢𝐝𝐞𝐨𝐬 - 𝟓𝟎𝟎𝟎+</b>\n\n"
+        "<b>➊ MOM Son Videos - 5000+</b>\n\n"
 
-        "<b>➋ 𝐒𝐢𝐬𝐭𝐞𝐫 𝐁𝐫𝐨𝐭𝐡𝐞𝐫 𝐕𝐢𝐝𝐞𝐨𝐬 - 𝟐𝟎𝟎𝟎+</b>\n\n"
+        "<b>➋ Sister Brother Videos - 2000+</b>\n\n"
 
-        "<b>➌ 𝐏𝐫𝐞𝐦𝐢𝐮𝐦 𝐕𝐢𝐝𝐞𝐨𝐬 - 𝟏𝟓𝟎𝟎𝟎+</b>\n\n"
+        "<b>➌ Premium Videos - 15000+</b>\n\n"
 
-        "<b>➍ 𝐓𝐞𝐞𝐧 𝐂𝐨𝐥𝐥𝐞𝐜𝐭𝐢𝐨𝐧 - 𝟔𝟎𝟎𝟎+</b>\n\n"
+        "<b>➍ Teen Collection - 6000+</b>\n\n"
 
-        "<b>➎ 𝐈𝐧𝐝𝐢𝐚𝐧 𝐃𝐞𝐬𝐢 𝐂𝐨𝐥𝐥𝐞𝐜𝐭𝐢𝐨𝐧 - 𝟏𝟎𝟎𝟎𝟎+</b>\n\n"
+        "<b>➎ Indian Desi Collection - 10000+</b>\n\n"
 
-        "<b>➏ 𝐇𝐢𝐝𝐝𝐞𝐧 𝐒𝐭𝐲𝐥𝐞 𝐕𝐢𝐝𝐞𝐨𝐬 - 𝟐𝟎𝟎𝟎+</b>"
+        "<b>➏ Hidden Style Videos - 2000+</b>"
     )
 
     await update.message.reply_photo(
@@ -71,51 +87,53 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
+
     await query.answer()
 
     keyboard = InlineKeyboardMarkup([
 
-        [InlineKeyboardButton("👉 MS VID€OS - ₹99", callback_data="p1")],
+        [InlineKeyboardButton("👉 MMS Videos - ₹99", callback_data="p1")],
 
-        [InlineKeyboardButton("👉 R€P VID€OS - ₹149", callback_data="p2")],
+        [InlineKeyboardButton("👉 REP Videos - ₹149", callback_data="p2")],
 
-        [InlineKeyboardButton("👉 ALL ¡N ONE (50 GROUP) - ₹249", callback_data="p3")],
+        [InlineKeyboardButton("👉 ALL IN ONE - ₹249", callback_data="p3")],
 
-        [InlineKeyboardButton("👉 VIP ALL (100K+ VID€OS) - ₹499", callback_data="p4")],
+        [InlineKeyboardButton("👉 VIP ALL - ₹499", callback_data="p4")],
 
-        [InlineKeyboardButton("⬅ Back", callback_data="back")]
+        [InlineKeyboardButton("⬅ Back", callback_data="home")]
     ])
 
     await query.message.edit_media(
         media=InputMediaPhoto(
             media=PREMIUM_IMAGE,
-            caption="<b>💎 𝐒𝐞𝐥𝐞𝐜𝐭 𝐘𝐨𝐮𝐫 𝐏𝐥𝐚𝐧 𝐁𝐞𝐥𝐨𝐰 👇</b>",
+            caption="<b>💎 Select Your Plan Below 👇</b>",
             parse_mode="HTML"
         ),
         reply_markup=keyboard
     )
 
 
-# ================= BACK =================
-async def back(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ================= HOME =================
+async def home(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
+
     await query.answer()
 
     caption = (
-        "<b>🎬 𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐕𝐢𝐝𝐞𝐨𝐬 𝐂𝐨𝐥𝐥𝐞𝐜𝐭𝐢𝐨𝐧</b>\n\n"
+        "<b>🎬 Available Videos Collection</b>\n\n"
 
-        "<b>➊ 𝐌𝐎𝐌 𝐒𝐨𝐧 𝐕𝐢𝐝𝐞𝐨𝐬 - 𝟓𝟎𝟎𝟎+</b>\n\n"
+        "<b>➊ MOM Son Videos - 5000+</b>\n\n"
 
-        "<b>➋ 𝐒𝐢𝐬𝐭𝐞𝐫 𝐁𝐫𝐨𝐭𝐡𝐞𝐫 𝐕𝐢𝐝𝐞𝐨𝐬 - 𝟐𝟎𝟎𝟎+</b>\n\n"
+        "<b>➋ Sister Brother Videos - 2000+</b>\n\n"
 
-        "<b>➌ 𝐏𝐫𝐞𝐦𝐢𝐮𝐦 𝐕𝐢𝐝𝐞𝐨𝐬 - 𝟏𝟓𝟎𝟎𝟎+</b>\n\n"
+        "<b>➌ Premium Videos - 15000+</b>\n\n"
 
-        "<b>➍ 𝐓𝐞𝐞𝐧 𝐂𝐨𝐥𝐥𝐞𝐜𝐭𝐢𝐨𝐧 - 𝟔𝟎𝟎𝟎+</b>\n\n"
+        "<b>➍ Teen Collection - 6000+</b>\n\n"
 
-        "<b>➎ 𝐈𝐧𝐝𝐢𝐚𝐧 𝐃𝐞𝐬𝐢 𝐂𝐨𝐥𝐥𝐞𝐜𝐭𝐢𝐨𝐧 - 𝟏𝟎𝟎𝟎𝟎+</b>\n\n"
+        "<b>➎ Indian Desi Collection - 10000+</b>\n\n"
 
-        "<b>➏ 𝐇𝐢𝐝𝐝𝐞𝐧 𝐒𝐭𝐲𝐥𝐞 𝐕𝐢𝐝𝐞𝐨𝐬 - 𝟐𝟎𝟎𝟎+</b>"
+        "<b>➏ Hidden Style Videos - 2000+</b>"
     )
 
     await query.message.edit_media(
@@ -128,87 +146,70 @@ async def back(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# ================= QR MENU =================
+async def show_qr(query, qr_image, amount, delivery_link):
+
+    keyboard = InlineKeyboardMarkup([
+
+        [InlineKeyboardButton("✅ I Have Paid", url=delivery_link)],
+
+        [InlineKeyboardButton("⬅ Back", callback_data="premium")]
+    ])
+
+    await query.message.edit_media(
+        media=InputMediaPhoto(
+            media=qr_image,
+            caption=f"💸 Scan QR To Pay ₹{amount}",
+        ),
+        reply_markup=keyboard
+    )
+
+
 # ================= BUTTON HANDLER =================
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
+
     await query.answer()
 
     data = query.data
 
+    # PREMIUM PAGE
     if data == "premium":
 
         await premium(update, context)
 
-    elif data == "back":
+    # HOME PAGE
+    elif data == "home":
 
-        await back(update, context)
+        await home(update, context)
 
+    # ₹99
     elif data == "p1":
 
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("✅ I Have Paid", url="https://t.me/YOURCHANNEL")],
-        [InlineKeyboardButton("⬅ Back", callback_data="premium")]
-    ])
+        await show_qr(query, QR_99, 99, LINK_99)
 
-    await query.message.edit_media(
-        media=InputMediaPhoto(
-            media=QR_99,
-            caption="💸 Scan QR To Pay ₹99",
-        ),
-        reply_markup=keyboard
-    )
+    # ₹149
+    elif data == "p2":
 
-elif data == "p2":
+        await show_qr(query, QR_149, 149, LINK_149)
 
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("✅ I Have Paid", url="https://t.me/YOURCHANNEL")],
-        [InlineKeyboardButton("⬅ Back", callback_data="premium")]
-    ])
+    # ₹249
+    elif data == "p3":
 
-    await query.message.edit_media(
-        media=InputMediaPhoto(
-            media=QR_149,
-            caption="💸 Scan QR To Pay ₹149",
-        ),
-        reply_markup=keyboard
-    )
+        await show_qr(query, QR_249, 249, LINK_249)
 
-elif data == "p3":
+    # ₹499
+    elif data == "p4":
 
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("✅ I Have Paid", url="https://t.me/YOURCHANNEL")],
-        [InlineKeyboardButton("⬅ Back", callback_data="premium")]
-    ])
-
-    await query.message.edit_media(
-        media=InputMediaPhoto(
-            media=QR_249,
-            caption="💸 Scan QR To Pay ₹249",
-        ),
-        reply_markup=keyboard
-    )
-
-elif data == "p4":
-
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("✅ I Have Paid", url="https://t.me/YOURCHANNEL")],
-        [InlineKeyboardButton("⬅ Back", callback_data="premium")]
-    ])
-
-    await query.message.edit_media(
-        media=InputMediaPhoto(
-            media=QR_499,
-            caption="💸 Scan QR To Pay ₹499",
-        ),
-        reply_markup=keyboard
-    )
+        await show_qr(query, QR_499, 499, LINK_499)
 
 
 # ================= RUN =================
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
+
 app.add_handler(CallbackQueryHandler(button_handler))
 
 print("Bot is running...")
