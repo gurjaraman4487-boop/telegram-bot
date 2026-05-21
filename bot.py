@@ -19,6 +19,13 @@ from telegram.ext import (
 TOKEN = "8919459210:AAGWtjHwgUFETIABPIVTOrhB2dcgGFvMLBc"
 
 # ==================================================
+#                  ADMIN ID
+# ==================================================
+
+# Apna Telegram numeric ID yaha dalo
+ADMIN_ID = 6648941928
+
+# ==================================================
 #                    MAIN IMAGES
 # ==================================================
 
@@ -39,18 +46,29 @@ QR_249 = "https://i.postimg.cc/2SdYgD9Q/Screenshot-20260521-231058.png"
 QR_499 = "https://i.postimg.cc/MTH8cj6m/Screenshot-20260521-231113.png"
 
 # ==================================================
-#                    ADMIN USERNAME
+#                  ADMIN USERNAME
 # ==================================================
 
 ADMIN_USERNAME = "https://t.me/dealer_x"
 
 # ==================================================
-#                    EXTRA LINKS
+#                    LINKS
 # ==================================================
 
 DEMO_CHANNEL = "https://t.me/demochannlink"
 
 INFO_CHANNEL = "https://t.me/howtogetpre"
+
+# ==================================================
+#                    STATS
+# ==================================================
+
+users = set()
+
+plan_99 = 0
+plan_149 = 0
+plan_249 = 0
+plan_499 = 0
 
 # ==================================================
 #                 HOME BUTTONS
@@ -90,6 +108,8 @@ def home_buttons():
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
+    users.add(update.effective_user.id)
+
     caption = (
         "<b>🔥 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍 🔥</b>\n\n"
 
@@ -101,9 +121,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         "<b>📦 𝟏𝟎𝟎+ 𝐕𝐈𝐏 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍𝐒</b>\n\n"
 
-        "<b>⚡ 𝐈𝐍𝐒𝐓𝐀𝐍𝐓 𝐀𝐂𝐂𝐄𝐒𝐒</b>\n\n"
-
-        "<b>👇 𝐂𝐋𝐈𝐂𝐊 𝐁𝐄𝐋𝐎𝐖 👇</b>"
+        "<b>⚡ 𝐈𝐍𝐒𝐓𝐀𝐍𝐓 𝐀𝐂𝐂𝐄𝐒𝐒</b>"
     )
 
     await update.message.reply_photo(
@@ -123,28 +141,28 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "💎 𝐌𝐌𝐒 𝐏𝐀𝐂𝐊 - ₹𝟗𝟗",
+                "💎 𝐌𝐌𝐒 𝐏𝐀𝐂𝐊 - ₹99",
                 callback_data="p1"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "🔥 𝐑𝐄𝐏 𝐕𝐈𝐃𝐄𝐎𝐒 - ₹𝟏𝟒𝟗",
+                "🔥 𝐑𝐄𝐏 𝐕𝐈𝐃𝐄𝐎𝐒 - ₹149",
                 callback_data="p2"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 - ₹𝟐𝟒𝟗",
+                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 - ₹249",
                 callback_data="p3"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 𝐀𝐂𝐂𝐄𝐒𝐒 - ₹𝟒𝟗𝟗",
+                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 𝐀𝐂𝐂𝐄𝐒𝐒 - ₹499",
                 callback_data="p4"
             )
         ],
@@ -161,8 +179,7 @@ async def premium_menu(query):
         media=InputMediaPhoto(
             media=PREMIUM_IMAGE,
             caption=(
-                "<b>💎 𝐒𝐄𝐋𝐄𝐂𝐓 𝐘𝐎𝐔𝐑 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐏𝐋𝐀𝐍 💎</b>\n\n"
-                "<b>⚡ 𝐈𝐍𝐒𝐓𝐀𝐍𝐓 𝐀𝐂𝐂𝐄𝐒𝐒</b>"
+                "<b>💎 𝐒𝐄𝐋𝐄𝐂𝐓 𝐘𝐎𝐔𝐑 𝐏𝐋𝐀𝐍 💎</b>"
             ),
             parse_mode="HTML"
         ),
@@ -176,17 +193,7 @@ async def premium_menu(query):
 async def home_page(query):
 
     caption = (
-        "<b>🔥 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍 🔥</b>\n\n"
-
-        "<b>🎬 𝟓𝟎𝟎𝟎+ 𝐌𝐌𝐒 𝐕𝐈𝐃𝐄𝐎𝐒</b>\n\n"
-
-        "<b>💋 𝟐𝟎𝟎𝟎+ 𝐂𝐎𝐔𝐏𝐋𝐄 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n\n"
-
-        "<b>🔥 𝟏𝟓𝟎𝟎𝟎+ 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎𝐒</b>\n\n"
-
-        "<b>📦 𝟏𝟎𝟎+ 𝐕𝐈𝐏 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍𝐒</b>\n\n"
-
-        "<b>⚡ 𝐈𝐍𝐒𝐓𝐀𝐍𝐓 𝐀𝐂𝐂𝐄𝐒𝐒</b>"
+        "<b>🔥 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍 🔥</b>"
     )
 
     await query.message.edit_media(
@@ -225,9 +232,7 @@ async def qr_page(query, qr_image, amount):
         media=InputMediaPhoto(
             media=qr_image,
             caption=(
-                f"<b>💸 𝐒𝐂𝐀𝐍 𝐓𝐎 𝐏𝐀𝐘 ₹{amount}</b>\n\n"
-                "<b>⚡ AFTER PAYMENT CLICK\n"
-                "'I HAVE PAID'</b>"
+                f"<b>💸 𝐒𝐂𝐀𝐍 𝐓𝐎 𝐏𝐀𝐘 ₹{amount}</b>"
             ),
             parse_mode="HTML"
         ),
@@ -235,10 +240,40 @@ async def qr_page(query, qr_image, amount):
     )
 
 # ==================================================
+#                    STATS COMMAND
+# ==================================================
+
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    text = (
+        f"📊 <b>BOT STATS</b>\n\n"
+
+        f"👥 Total Users: {len(users)}\n\n"
+
+        f"💎 ₹99 Clicks: {plan_99}\n"
+        f"🔥 ₹149 Clicks: {plan_149}\n"
+        f"📦 ₹249 Clicks: {plan_249}\n"
+        f"👑 ₹499 Clicks: {plan_499}"
+    )
+
+    await update.message.reply_text(
+        text,
+        parse_mode="HTML"
+    )
+
+# ==================================================
 #                 BUTTON HANDLER
 # ==================================================
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    global plan_99
+    global plan_149
+    global plan_249
+    global plan_499
 
     query = update.callback_query
 
@@ -251,12 +286,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await premium_menu(query)
 
-    # HOME PAGE
+    # HOME
     elif data == "home":
 
         await home_page(query)
 
-    # BACK TO PREMIUM
+    # BACK
     elif data == "back_to_plans":
 
         await premium_menu(query)
@@ -264,20 +299,28 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ₹99
     elif data == "p1":
 
+        plan_99 += 1
+
         await qr_page(query, QR_99, 99)
 
     # ₹149
     elif data == "p2":
+
+        plan_149 += 1
 
         await qr_page(query, QR_149, 149)
 
     # ₹249
     elif data == "p3":
 
+        plan_249 += 1
+
         await qr_page(query, QR_249, 249)
 
     # ₹499
     elif data == "p4":
+
+        plan_499 += 1
 
         await qr_page(query, QR_499, 499)
 
@@ -311,6 +354,10 @@ app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(
     CommandHandler("start", start)
+)
+
+app.add_handler(
+    CommandHandler("stats", stats)
 )
 
 app.add_handler(
