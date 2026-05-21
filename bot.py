@@ -39,19 +39,13 @@ QR_249 = "https://i.postimg.cc/2SdYgD9Q/Screenshot-20260521-231058.png"
 QR_499 = "https://i.postimg.cc/MTH8cj6m/Screenshot-20260521-231113.png"
 
 # ==================================================
-#                 DELIVERY LINKS
+#                    ADMIN USERNAME
 # ==================================================
 
-LINK_99 = "https://t.me/bsbsjklalalala"
-
-LINK_149 = "https://t.me/najskalalalal"
-
-LINK_249 = "https://t.me/nakakalalal"
-
-LINK_499 = "https://t.me/nwkskalal"
+ADMIN_USERNAME = "https://t.me/dealer_x"
 
 # ==================================================
-#                 EXTRA LINKS
+#                    EXTRA LINKS
 # ==================================================
 
 DEMO_CHANNEL = "https://t.me/demochannlink"
@@ -129,28 +123,28 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "💎 𝐌𝐒 𝐕!𝐃€𝐎𝐒 - ₹𝟗𝟗",
+                "💎 𝐌𝐌𝐒 𝐏𝐀𝐂𝐊 - ₹𝟗𝟗",
                 callback_data="p1"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "🔥 𝐑€𝐏 𝐕!𝐃€𝐎𝐒 - ₹𝟏𝟒𝟗",
+                "🔥 𝐑𝐄𝐏 𝐕𝐈𝐃𝐄𝐎𝐒 - ₹𝟏𝟒𝟗",
                 callback_data="p2"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 ( 𝟓𝟎 𝐆𝐑𝐎𝐔𝐏 ) - ₹𝟐𝟒𝟗",
+                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 - ₹𝟐𝟒𝟗",
                 callback_data="p3"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 ( 𝟏𝟎𝟎𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹𝟒𝟗𝟗",
+                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 𝐀𝐂𝐂𝐄𝐒𝐒 - ₹𝟒𝟗𝟗",
                 callback_data="p4"
             )
         ],
@@ -208,14 +202,14 @@ async def home_page(query):
 #                    QR PAGE
 # ==================================================
 
-async def qr_page(query, qr_image, amount, delivery_link):
+async def qr_page(query, qr_image, amount):
 
     keyboard = [
 
         [
             InlineKeyboardButton(
                 "✅ 𝐈 𝐇𝐀𝐕𝐄 𝐏𝐀𝐈𝐃",
-                url=delivery_link
+                callback_data="send_ss"
             )
         ],
 
@@ -232,8 +226,8 @@ async def qr_page(query, qr_image, amount, delivery_link):
             media=qr_image,
             caption=(
                 f"<b>💸 𝐒𝐂𝐀𝐍 𝐓𝐎 𝐏𝐀𝐘 ₹{amount}</b>\n\n"
-                "<b>⚡ 𝐀𝐅𝐓𝐄𝐑 𝐏𝐀𝐘𝐌𝐄𝐍𝐓\n"
-                "𝐂𝐋𝐈𝐂𝐊 '𝐈 𝐇𝐀𝐕𝐄 𝐏𝐀𝐈𝐃'</b>"
+                "<b>⚡ AFTER PAYMENT CLICK\n"
+                "'I HAVE PAID'</b>"
             ),
             parse_mode="HTML"
         ),
@@ -262,49 +256,51 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await home_page(query)
 
-    # BACK TO PLANS
+    # BACK TO PREMIUM
     elif data == "back_to_plans":
 
         await premium_menu(query)
 
-    # ₹99 PLAN
+    # ₹99
     elif data == "p1":
 
-        await qr_page(
-            query,
-            QR_99,
-            99,
-            LINK_99
-        )
+        await qr_page(query, QR_99, 99)
 
-    # ₹149 PLAN
+    # ₹149
     elif data == "p2":
 
-        await qr_page(
-            query,
-            QR_149,
-            149,
-            LINK_149
-        )
+        await qr_page(query, QR_149, 149)
 
-    # ₹249 PLAN
+    # ₹249
     elif data == "p3":
 
-        await qr_page(
-            query,
-            QR_249,
-            249,
-            LINK_249
-        )
+        await qr_page(query, QR_249, 249)
 
-    # ₹499 PLAN
+    # ₹499
     elif data == "p4":
 
-        await qr_page(
-            query,
-            QR_499,
-            499,
-            LINK_499
+        await qr_page(query, QR_499, 499)
+
+    # SEND SCREENSHOT
+    elif data == "send_ss":
+
+        await query.message.edit_caption(
+            caption=(
+                "<b>✅ PAYMENT VERIFICATION</b>\n\n"
+
+                "<b>📸 SEND PAYMENT SCREENSHOT TO ADMIN</b>\n\n"
+
+                "<b>⚡ AFTER VERIFY YOU WILL GET ACCESS</b>"
+            ),
+            parse_mode="HTML",
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton(
+                        "📩 SEND SCREENSHOT",
+                        url=ADMIN_USERNAME
+                    )
+                ]
+            ])
         )
 
 # ==================================================
