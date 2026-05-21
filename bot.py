@@ -136,7 +136,7 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "🔥 𝐑𝐄𝐏 𝐕𝐈𝐃𝐄𝐎𝐒 - ₹𝟏𝟒𝟗",
+                "🔥 𝐑€𝐏 𝐕!𝐃€𝐎𝐒 - ₹𝟏𝟒𝟗",
                 callback_data="p2"
             )
         ],
