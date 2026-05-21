@@ -141,28 +141,28 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "💎 𝐌𝐌𝐒 𝐏𝐀𝐂𝐊 - ₹99",
+                "💎 𝐌𝐒 𝐕!𝐃€𝐎𝐒 - ₹99",
                 callback_data="p1"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "🔥 𝐑𝐄𝐏 𝐕𝐈𝐃𝐄𝐎𝐒 - ₹149",
+                "🔥 𝐑€𝐏 𝐕!𝐃€𝐎𝐒 - ₹149",
                 callback_data="p2"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 - ₹249",
+                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 ( 𝟓𝟎 𝐆𝐑𝐎𝐔𝐏 ) - ₹249",
                 callback_data="p3"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 𝐀𝐂𝐂𝐄𝐒𝐒 - ₹499",
+                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 ( 𝟏𝟎𝟎𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹499",
                 callback_data="p4"
             )
         ],
