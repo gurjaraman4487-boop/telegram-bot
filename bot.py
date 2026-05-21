@@ -21,10 +21,10 @@ START_IMAGE = "https://i.postimg.cc/MKWZn3Lv/IMG-20260521-163611-172.jpg"
 PREMIUM_IMAGE = "https://i.postimg.cc/x89kTfHG/IMG-20260521-164434-789.jpg"
 
 # ================= QR IMAGES =================
-QR_99 = "https://your-99-qr-image-link.png"
-QR_149 = "https://your-149-qr-image-link.png"
-QR_249 = "https://your-249-qr-image-link.png"
-QR_499 = "https://your-499-qr-image-link.png"
+QR_99 = "https://i.postimg.cc/C5tMMsbG/Screenshot-20260521-231011.png"
+QR_149 = "https://i.postimg.cc/DyXndsqs/Screenshot-20260521-231036.png"
+QR_249 = "https://i.postimg.cc/2SdYgD9Q/Screenshot-20260521-231058.png"
+QR_499 = "https://i.postimg.cc/MTH8cj6m/Screenshot-20260521-231113.png"
 
 # ================= LINKS =================
 DEMO_CHANNEL = "https://t.me/demochannlink"
