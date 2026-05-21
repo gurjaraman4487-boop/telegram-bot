@@ -129,7 +129,7 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "💎 MS VIDEOS - ₹𝟗𝟗",
+                "💎 𝐌𝐒 𝐕!𝐃€𝐎𝐒 - ₹𝟗𝟗",
                 callback_data="p1"
             )
         ],
