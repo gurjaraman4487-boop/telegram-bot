@@ -143,14 +143,14 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 - ₹𝟐𝟒𝟗",
+                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 ( 𝟓𝟎 𝐆𝐑𝐎𝐔𝐏 ) - ₹𝟐𝟒𝟗",
                 callback_data="p3"
             )
         ],
 
         [
             InlineKeyboardButton(
-                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 𝐀𝐂𝐂𝐄𝐒𝐒 - ₹𝟒𝟗𝟗",
+                "👑 𝐕𝐈𝐋 𝐀𝐋𝐋 ( 𝟏𝟎𝟎𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹𝟒𝟗𝟗",
                 callback_data="p4"
             )
         ],
