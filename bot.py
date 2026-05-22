@@ -148,7 +148,7 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "🔥 𝐑€𝐏 𝐕!𝐃€𝐎𝐒 - ₹149",
+                "🔥 €𝐏 𝐕!𝐃€𝐎𝐒 - ₹149",
                 callback_data="p2"
             )
         ],
