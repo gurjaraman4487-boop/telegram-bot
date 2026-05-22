@@ -227,7 +227,7 @@ async def qr_page(query, qr_image, amount):
 
         [
             InlineKeyboardButton(
-                "✅ 𝐈 𝐇𝐀𝐕𝐄 𝐏𝐀𝐈𝐃",
+                "✅ 𝐆𝐄𝐓 𝐀𝐂𝐂𝐄𝐒𝐒",
                 callback_data="send_ss"
             )
         ],
