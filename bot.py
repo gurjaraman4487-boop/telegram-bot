@@ -29,7 +29,7 @@ ADMIN_USERNAME = "https://t.me/dealer_x"
 # ==================================================
 # Education purpose ke liye test credentials default hain. Production me change karein.
 CASHFREE_APP_ID = "77152048f182445d66a3602069025177"
-CASHFREE_SECRET_KEY = "cfsk_ma_prod_1d43da257fdf34ee6a41ee8d5741444e_bd4de1ad"
+CASHFREE_SECRET_KEY = "cfsk_ma_prod_752eb9dd24a3cf3da7e74f9a90208af6_7e75a8b5"
 CASHFREE_ENV = "PROD"  # PROD ke liye "PROD" likhein
 
 CASHFREE_ENV = "PROD"
