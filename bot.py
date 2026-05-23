@@ -25,16 +25,13 @@ ADMIN_ID = 6648941928
 ADMIN_USERNAME = "https://t.me/dealer_x"
 
 # ==================================================
-#              CASHFREE CREDENTIALS (TEST/PROD)
+#         CASHFREE LIVE CREDENTIALS & URL
 # ==================================================
-# Education purpose ke liye test credentials default hain. Production me change karein.
-CASHFREE_APP_ID = "77152048f182445d66a3602069025177"
-CASHFREE_SECRET_KEY = "cfsk_ma_prod_752eb9dd24a3cf3da7e74f9a90208af6_7e75a8b5"
-CASHFREE_ENV = "PROD"  # PROD ke liye "PROD" likhein
+CASHFREE_APP_ID = "77152048f182445d66a3602069025177"          # <-- Apni asli Live App ID likhein
+CASHFREE_SECRET_KEY = "cfsk_ma_prod_752eb9dd24a3cf3da7e74f9a90208af6_7e75a8b5"  # <-- Apni asli Live Secret Key likhein
 
-CASHFREE_ENV = "PROD"
-CASHFREE_URL = "https://api.cashfree.com/pg/orders"
-
+CASHFREE_ENV = "PROD"                          # <-- Humne TEST hata kar PROD kar diya
+CASHFREE_URL = "https://api.cashfree.com/pg/orders" # <-- Ye asli live URL set ho gaya
 # ==================================================
 #                    IMAGES
 # ==================================================
