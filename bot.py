@@ -1,10 +1,11 @@
+import uuid
+import requests
 from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     InputMediaPhoto
 )
-
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -15,112 +16,144 @@ from telegram.ext import (
 # ==================================================
 #                    BOT TOKEN
 # ==================================================
-
 TOKEN = "8919459210:AAGWtjHwgUFETIABPIVTOrhB2dcgGFvMLBc"
 
 # ==================================================
-#                  ADMIN ID
+#                  ADMIN ID & USERNAME
 # ==================================================
-
-# Apna Telegram numeric ID yaha dalo
 ADMIN_ID = 6648941928
-
-# ==================================================
-#                    MAIN IMAGES
-# ==================================================
-
-START_IMAGE = "https://i.postimg.cc/MKWZn3Lv/IMG-20260521-163611-172.jpg"
-
-PREMIUM_IMAGE = "https://i.postimg.cc/x89kTfHG/IMG-20260521-164434-789.jpg"
-
-# ==================================================
-#                    QR IMAGES
-# ==================================================
-
-QR_99 = "https://i.postimg.cc/C5tMMsbG/Screenshot-20260521-231011.png"
-
-QR_149 = "https://i.postimg.cc/DyXndsqs/Screenshot-20260521-231036.png"
-
-QR_249 = "https://i.postimg.cc/2SdYgD9Q/Screenshot-20260521-231058.png"
-
-QR_499 = "https://i.postimg.cc/MTH8cj6m/Screenshot-20260521-231113.png"
-
-# ==================================================
-#                  ADMIN USERNAME
-# ==================================================
-
 ADMIN_USERNAME = "https://t.me/dealer_x"
+
+# ==================================================
+#              CASHFREE CREDENTIALS (TEST/PROD)
+# ==================================================
+# Education purpose ke liye test credentials default hain. Production me change karein.
+CASHFREE_APP_ID = "77152048f182445d66a3602069025177"
+CASHFREE_SECRET_KEY = "cfsk_ma_prod_1d43da257fdf34ee6a41ee8d5741444e_bd4de1ad"
+CASHFREE_ENV = "TEST"  # PROD ke liye "PROD" likhein
+
+if CASHFREE_ENV == "TEST":
+    CASHFREE_URL = "https://sandbox.cashfree.com/pg/orders"
+else:
+    CASHFREE_URL = "https://api.cashfree.com/pg/orders"
+
+# ==================================================
+#                    IMAGES
+# ==================================================
+START_IMAGE = "https://i.postimg.cc/MKWZn3Lv/IMG-20260521-163611-172.jpg"
+PREMIUM_IMAGE = "https://i.postimg.cc/x89kTfHG/IMG-20260521-164434-789.jpg"
 
 # ==================================================
 #                    LINKS
 # ==================================================
-
 DEMO_CHANNEL = "https://t.me/demochannlink"
-
 INFO_CHANNEL = "https://t.me/howtogetpre"
 
 # ==================================================
-#                    STATS
+#                    STATS & ACTIVE ORDERS
 # ==================================================
-
 users = set()
-
 plan_99 = 0
 plan_149 = 0
 plan_249 = 0
 plan_499 = 0
 
+# Active order IDs ko map karne ke liye { order_id: { user_id, amount } }
+active_orders = {}
+
+# ==================================================
+#                 CASHFREE UTILS
+# ==================================================
+def create_cashfree_order(order_id: str, amount: float, user_id: int):
+    """Cashfree PG API v3 ke rules ke hisab se order create karta hai"""
+    headers = {
+        "x-api-version": "2023-08-01",
+        "x-client-id": CASHFREE_APP_ID,
+        "x-client-secret": CASHFREE_SECRET_KEY,
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "order_id": order_id,
+        "order_amount": amount,
+        "order_currency": "INR",
+        "customer_details": {
+            "customer_id": str(user_id),
+            "customer_phone": "9999999999"  # Dummy for TG bot context
+        },
+        "order_meta": {
+            # Webhook ya status check me return hone wala user tracking URL parameter
+            "return_url": f"https://t.me/Pre_mmsbot?start=verify_{order_id}"
+        }
+    }
+    
+    try:
+        response = requests.post(CASHFREE_URL, json=payload, headers=headers)
+        if response.status_code == 200:
+            return response.json().get("payment_link")
+    except Exception as e:
+        print(f"Error creating order: {e}")
+    return None
+
+def check_payment_status(order_id: str):
+    """Cashfree API se order status cross-check karne ke liye"""
+    headers = {
+        "x-api-version": "2023-08-01",
+        "x-client-id": CASHFREE_APP_ID,
+        "x-client-secret": CASHFREE_SECRET_KEY,
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.get(f"{CASHFREE_URL}/{order_id}", headers=headers)
+        if response.status_code == 200:
+            return response.json().get("order_status")  # PAID, ACTIVE, etc.
+    except Exception as e:
+        print(f"Error checking status: {e}")
+    return "ERROR"
+
 # ==================================================
 #                 HOME BUTTONS
 # ==================================================
-
 def home_buttons():
-
     keyboard = [
-
-        [
-            InlineKeyboardButton(
-                "💎 𝐆𝐄𝐓 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 💎",
-                callback_data="premium"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "🎬 𝐃𝐄𝐌𝐎 𝐕𝐈𝐃𝐄𝐎𝐒",
-                url=DEMO_CHANNEL
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "📖 𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐏𝐑𝐄𝐌𝐈𝐔𝐌",
-                url=INFO_CHANNEL
-            )
-        ]
+        [InlineKeyboardButton("💎 𝐆𝐄𝐓 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 💎", callback_data="premium")],
+        [InlineKeyboardButton("🎬 𝐃𝐄𝐌𝐎 𝐕𝐈𝐃𝐄𝐎𝐒", url=DEMO_CHANNEL)],
+        [InlineKeyboardButton("📖 𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐏𝐑𝐄𝐌𝐈𝐔𝐌", url=INFO_CHANNEL)]
     ]
-
     return InlineKeyboardMarkup(keyboard)
 
 # ==================================================
-#                    START
+#                    START / VERIFY
 # ==================================================
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    users.add(update.effective_user.id)
+    user_id = update.effective_user.id
+    users.add(user_id)
+    
+    # Handle deep-linking checking payload (ex: /start verify_order123)
+    args = context.args
+    if args and args[0].startswith("verify_"):
+        order_id = args[0].replace("verify_", "")
+        status = check_payment_status(order_id)
+        
+        if status == "PAID":
+            await update.message.reply_text(
+                "<b>🎉 PAYMENT SUCCESSFUL!</b>\n\nAapka premium activation complete ho gaya hai. Join karne ke liye admin ko contact karein ya VIP links generate ho chuke hain.",
+                parse_mode="HTML"
+            )
+            return
+        elif status == "ACTIVE":
+            await update.message.reply_text("⏳ Payment abhi tak complete nahi hui hai. Kripya payment poori karein.")
+            return
+        else:
+            await update.message.reply_text("❌ Payment fail ho gayi ya invalid order ID hai.")
+            return
 
     caption = (
         "<b>🔥 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍 🔥</b>\n\n"
-
         "<b>🎬 𝟓𝟎𝟎𝟎+ 𝐌𝐌𝐒 𝐕𝐈𝐃𝐄𝐎𝐒</b>\n\n"
-
         "<b>💋 𝟐𝟎𝟎𝟎+ 𝐂𝐎𝐔𝐏𝐋𝐄 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n\n"
-
         "<b>🔥 𝟏𝟓𝟎𝟎𝟎+ 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎𝐒</b>\n\n"
-
         "<b>📦 𝟏𝟎𝟎+ 𝐕𝐈𝐏 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍𝐒</b>\n\n"
-
         "<b>⚡ 𝐈𝐍𝐒𝐓𝐀𝐍𝐓 𝐀𝐂𝐂𝐄𝐒𝐒</b>"
     )
 
@@ -134,53 +167,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ==================================================
 #                 PREMIUM MENU
 # ==================================================
-
 async def premium_menu(query):
-
     keyboard = [
-
-        [
-            InlineKeyboardButton(
-                "💎 𝐌𝐒 𝐕!𝐃€𝐎𝐒 - ₹99",
-                callback_data="p1"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "🔥 €𝐏 𝐕!𝐃€𝐎𝐒 - ₹149",
-                callback_data="p2"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 ( 𝟓𝟎 𝐆𝐑𝐎𝐔𝐏 ) - ₹249",
-                callback_data="p3"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "👑 𝐕𝐈𝐏 𝐀𝐋𝐋 ( 𝟏𝟎𝟎𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹499",
-                callback_data="p4"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "⬅️ 𝐁𝐀𝐂𝐊",
-                callback_data="home"
-            )
-        ]
+        [InlineKeyboardButton("💎 𝐌𝐒 𝐕!𝐃€𝐎𝐒 - ₹99", callback_data="p1")],
+        [InlineKeyboardButton("🔥 €𝐏 𝐕!𝐃€𝐎𝐒 - ₹149", callback_data="p2")],
+        [InlineKeyboardButton("📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 ( 𝟓𝟎 𝐆𝐑𝐎𝐔𝐏 ) - ₹249", callback_data="p3")],
+        [InlineKeyboardButton("👑 𝐕𝐈𝐏 𝐀𝐋𝐋 ( 𝟏𝟎0𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹499", callback_data="p4")],
+        [InlineKeyboardButton("⬅️ 𝐁𝐀𝐂𝐊", callback_data="home")]
     ]
 
     await query.message.edit_media(
         media=InputMediaPhoto(
             media=PREMIUM_IMAGE,
-            caption=(
-                "<b>💎 𝐒𝐄𝐋𝐄𝐂𝐓 𝐘𝐎𝐔𝐑 𝐏𝐋𝐀𝐍 💎</b>"
-            ),
+            caption="<b>💎 𝐒𝐄𝐋𝐄𝐂𝐓 𝐘𝐎𝐔𝐑 𝐏𝐋𝐀𝐍 💎</b>",
             parse_mode="HTML"
         ),
         reply_markup=InlineKeyboardMarkup(keyboard)
@@ -189,22 +188,14 @@ async def premium_menu(query):
 # ==================================================
 #                    HOME PAGE
 # ==================================================
-
 async def home_page(query):
-
     caption = (
         "<b>🔥 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍 🔥</b>\n\n"
-
         "<b>🎬 𝟓𝟎𝟎𝟎+ 𝐌𝐌𝐒 𝐕𝐈𝐃𝐄𝐎𝐒</b>\n\n"
-
         "<b>💋 𝟐𝟎𝟎𝟎+ 𝐂𝐎𝐔𝐏𝐋𝐄 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n\n"
-
         "<b>🔥 𝟏𝟓𝟎𝟎𝟎+ 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎𝐒</b>\n\n"
-
         "<b>📦 𝟏𝟎𝟎+ 𝐕𝐈𝐏 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍𝐒</b>\n\n"
-
         "<b>⚡ 𝐈𝐍𝐒𝐓𝐀𝐍𝐓 𝐀𝐂𝐂𝐄𝐒𝐒</b>\n\n"
-
         "<b>👇 𝐂𝐋𝐈𝐂𝐊 𝐁𝐄𝐋𝐎𝐖 👇</b>"
     )
 
@@ -218,33 +209,37 @@ async def home_page(query):
     )
 
 # ==================================================
-#                    QR PAGE
+#               DYNAMIC CASHFREE PAGE
 # ==================================================
+async def cashfree_pay_page(query, amount):
+    user_id = query.from_user.id
+    
+    # Unique Order ID generation
+    order_id = f"ORDER_{uuid.uuid4().hex[:10].upper()}"
+    
+    # Cashfree API call se live payment link ready karein
+    payment_link = create_cashfree_order(order_id, amount, user_id)
+    
+    if not payment_link:
+        await query.message.reply_text("❌ Payment link generate nahi ho paya. Kripya baad me try karein.")
+        return
 
-async def qr_page(query, qr_image, amount):
+    # Database state record backup track ke liye
+    active_orders[order_id] = {"user_id": user_id, "amount": amount}
 
     keyboard = [
-
-        [
-            InlineKeyboardButton(
-                "✅ 𝐆𝐄𝐓 𝐀𝐂𝐂𝐄𝐒𝐒",
-                callback_data="send_ss"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "⬅️ 𝐁𝐀𝐂𝐊",
-                callback_data="back_to_plans"
-            )
-        ]
+        [InlineKeyboardButton("💳 𝐏𝐀𝐘 𝐍𝐎𝐖 (𝐔𝐏𝐈 / 𝐂𝐀𝐑𝐃)", url=payment_link)],
+        [InlineKeyboardButton("🔄 𝐂𝐇𝐄𝐂𝐊 𝐒𝐓𝐀𝐓𝐔𝐒", callback_data=f"check_{order_id}")],
+        [InlineKeyboardButton("⬅️ 𝐁𝐀𝐂𝐊", callback_data="back_to_plans")]
     ]
 
     await query.message.edit_media(
         media=InputMediaPhoto(
-            media=qr_image,
+            media=PREMIUM_IMAGE,
             caption=(
-                f"<b>💸 𝐒𝐂𝐀𝐍 𝐓𝐎 𝐏𝐀𝐘 ₹{amount}</b>"
+                f"<b>💸 𝐏𝐋𝐀𝐍: ₹{amount}</b>\n\n"
+                f"<b>🆔 Order ID:</b> <code>{order_id}</code>\n\n"
+                f"👉 Niche diye gye link se payment safely secure kijiye. Pay karne ke baad <b>CHECK STATUS</b> button dabayein."
             ),
             parse_mode="HTML"
         ),
@@ -254,128 +249,79 @@ async def qr_page(query, qr_image, amount):
 # ==================================================
 #                    STATS COMMAND
 # ==================================================
-
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     if update.effective_user.id != ADMIN_ID:
         return
 
     text = (
         f"📊 <b>BOT STATS</b>\n\n"
-
         f"👥 Total Users: {len(users)}\n\n"
-
-        f"💎 ₹99 Clicks: {plan_99}\n"
-        f"🔥 ₹149 Clicks: {plan_149}\n"
-        f"📦 ₹249 Clicks: {plan_249}\n"
-        f"👑 ₹499 Clicks: {plan_499}"
+        f"💎 ₹99 Generated: {plan_99}\n"
+        f"🔥 ₹149 Generated: {plan_149}\n"
+        f"📦 ₹249 Generated: {plan_249}\n"
+        f"👑 ₹499 Generated: {plan_499}"
     )
 
-    await update.message.reply_text(
-        text,
-        parse_mode="HTML"
-    )
+    await update.message.reply_text(text, parse_mode="HTML")
 
 # ==================================================
 #                 BUTTON HANDLER
 # ==================================================
-
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    global plan_99
-    global plan_149
-    global plan_249
-    global plan_499
+    global plan_99, plan_149, plan_249, plan_499
 
     query = update.callback_query
-
     await query.answer()
-
     data = query.data
 
-    # PREMIUM MENU
     if data == "premium":
-
         await premium_menu(query)
-
-    # HOME
     elif data == "home":
-
         await home_page(query)
-
-    # BACK
     elif data == "back_to_plans":
-
         await premium_menu(query)
-
-    # ₹99
+        
+    # Plan triggers
     elif data == "p1":
-
         plan_99 += 1
-
-        await qr_page(query, QR_99, 99)
-
-    # ₹149
+        await cashfree_pay_page(query, 99)
     elif data == "p2":
-
         plan_149 += 1
-
-        await qr_page(query, QR_149, 149)
-
-    # ₹249
+        await cashfree_pay_page(query, 149)
     elif data == "p3":
-
         plan_249 += 1
-
-        await qr_page(query, QR_249, 249)
-
-    # ₹499
+        await cashfree_pay_page(query, 249)
     elif data == "p4":
-
         plan_499 += 1
-
-        await qr_page(query, QR_499, 499)
-
-    # SEND SCREENSHOT
-    elif data == "send_ss":
-
-        await query.message.edit_caption(
-            caption=(
-                "<b>✅ PAYMENT VERIFICATION</b>\n\n"
-
-                "<b>📸 SEND PAYMENT SCREENSHOT TO ADMIN</b>\n\n"
-
-                "<b>⚡ AFTER VERIFY YOU WILL GET ACCESS</b>"
-            ),
-            parse_mode="HTML",
-            reply_markup=InlineKeyboardMarkup([
-                [
-                    InlineKeyboardButton(
-                        "📩 SEND SCREENSHOT",
-                        url=ADMIN_USERNAME
-                    )
-                ]
-            ])
-        )
+        await cashfree_pay_page(query, 499)
+        
+    # Manual status check handling from button
+    elif data.startswith("check_"):
+        order_id = data.replace("check_", "")
+        status = check_payment_status(order_id)
+        
+        if status == "PAID":
+            await query.message.edit_caption(
+                caption="<b>🎉 PAYMENT VERIFIED SUCCESSFULLY!</b>\n\nAapko full group ka instant access diya jata hai. Any issue contact support.",
+                parse_mode="HTML",
+                reply_markup=None
+            )
+        else:
+            # Alert context user standard query verification process
+            await context.bot.answer_callback_query(
+                callback_query_id=query.id,
+                text="❌ Payment abhi tak receive nahi hui hai. Kripya process complete karein.",
+                show_alert=True
+            )
 
 # ==================================================
 #                    RUN BOT
 # ==================================================
-
 app = ApplicationBuilder().token(TOKEN).build()
 
-app.add_handler(
-    CommandHandler("start", start)
-)
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("stats", stats))
+app.add_handler(CallbackQueryHandler(button_handler))
 
-app.add_handler(
-    CommandHandler("stats", stats)
-)
-
-app.add_handler(
-    CallbackQueryHandler(button_handler)
-)
-
-print("✅ BOT IS RUNNING SUCCESSFULLY...")
-
+print("✅ BOT IS RUNNING SUCCESSFULLY WITH CASHFREE INTEGRATION...")
 app.run_polling()
