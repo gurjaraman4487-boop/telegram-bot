@@ -1,5 +1,7 @@
 import uuid
+import json
 import requests
+import paytmchecksum  # Paytm security library
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -25,15 +27,23 @@ ADMIN_ID = 6648941928
 ADMIN_USERNAME = "https://t.me/dealer_x"
 
 # ==================================================
-#         CASHFREE LIVE CREDENTIALS & URL
+#             PAYTM TEST CREDENTIALS & URL
 # ==================================================
-CASHFREE_APP_ID = "77152048f182445d66a3602069025177"          # <-- Apni asli Live App ID likhein
-CASHFREE_SECRET_KEY = "cfsk_ma_prod_752eb9dd24a3cf3da7e74f9a90208af6_7e75a8b5"  # <-- Apni asli Live Secret Key likhein
+# ⚠️ Yahan apni test details dalo jo dashboard se mili hain
+PAYTM_MID = "wJwasY46108610523084"
+PAYTM_MERCHANT_KEY = "RKmwIgkAcKb5bu41"
+PAYTM_WEBSITE = "WEBSTAGING"  # Test mode ke liye ye fix rahega
 
-CASHFREE_ENV = "PROD"                          # <-- Humne TEST hata kar PROD kar diya
-CASHFREE_URL = "https://api.cashfree.com/pg/orders" # <-- Ye asli live URL set ho gaya
+# Test Endpoints (Yahan humne url me "-stage" joda hai)
+PAYTM_URL_INITIATE = f"https://securegw-stage.paytm.in/theia/api/v1/initiateTransaction?mid={PAYTM_MID}&orderId="
+PAYTM_URL_STATUS = f"https://securegw-stage.paytm.in/v3/order/status"
 # ==================================================
-#                    IMAGES
+#                    BOT USERNAME
+# ==================================================
+BOT_USERNAME = "YOUR_BOT_USERNAME_HERE"  # Bina @ ke likhein
+
+# ==================================================
+#                    MAIN IMAGES
 # ==================================================
 START_IMAGE = "https://i.postimg.cc/MKWZn3Lv/IMG-20260521-163611-172.jpg"
 PREMIUM_IMAGE = "https://i.postimg.cc/x89kTfHG/IMG-20260521-164434-789.jpg"
@@ -53,57 +63,69 @@ plan_149 = 0
 plan_249 = 0
 plan_499 = 0
 
-# Active order IDs ko map karne ke liye { order_id: { user_id, amount } }
 active_orders = {}
 
 # ==================================================
-#                 CASHFREE UTILS
+#                 PAYTM UTILS
 # ==================================================
-def create_cashfree_order(order_id: str, amount: float, user_id: int):
-    """Cashfree PG API v3 ke rules ke hisab se order create karta hai"""
-    headers = {
-        "x-api-version": "2023-08-01",
-        "x-client-id": CASHFREE_APP_ID,
-        "x-client-secret": CASHFREE_SECRET_KEY,
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "order_id": order_id,
-        "order_amount": amount,
-        "order_currency": "INR",
-        "customer_details": {
-            "customer_id": str(user_id),
-            "customer_phone": "9999999999"  # Dummy for TG bot context
-        },
-        "order_meta": {
-            # Webhook ya status check me return hone wala user tracking URL parameter
-            "return_url": f"https://t.me/Pre_mmsbot?start=verify_{order_id}"
+def create_paytm_order(order_id: str, amount: float, user_id: int):
+    """Paytm API se secure checkout link generate karta hai"""
+    paytm_params = {
+        "body": {
+            "requestType": "Payment",
+            "mid": PAYTM_MID,
+            "websiteName": PAYTM_WEBSITE,
+            "orderId": order_id,
+            # Pehle ye securegw.paytm.in tha, isme securegw ke aage "-stage" lagana hai:
+"callbackUrl": f"https://securegw-stage.paytm.in/theia/paytmCallback?ORDER_ID={order_id}",
+            "txnAmount": {
+                "value": f"{amount:.2f}",
+                "currency": "INR",
+            },
+            "userInfo": {
+                "custId": f"USER_{user_id}",
+            },
         }
     }
-    
+
     try:
-        response = requests.post(CASHFREE_URL, json=payload, headers=headers)
-        if response.status_code == 200:
-            return response.json().get("payment_link")
+        # Checksum signature generate karna security ke liye mandatory hai
+        checksum = paytmchecksum.generateSignature(json.dumps(paytm_params["body"]), PAYTM_MERCHANT_KEY)
+        paytm_params["head"] = {"signature": checksum}
+
+        response = requests.post(PAYTM_URL_INITIATE + order_id, json=paytm_params)
+        res_data = response.json()
+        
+        if res_data.get("body", {}).get("resultInfo", {}).get("resultStatus") == "S":
+            txn_token = res_data["body"]["txnToken"]
+            # Ye user ko seedhe Paytm ke payment page par bhejega jahan UPI/Netbanking dikhega
+            pay_link = f"https://securegw.paytm.in/theia/api/v1/showPaymentPage?mid={PAYTM_MID}&orderId={order_id}&txnToken={txn_token}"
+            return pay_link
+        else:
+            print(f"🔴 Paytm Link Error: {res_data}")
     except Exception as e:
-        print(f"Error creating order: {e}")
+        print(f"❌ Paytm Connection Error: {e}")
     return None
 
-def check_payment_status(order_id: str):
-    """Cashfree API se order status cross-check karne ke liye"""
-    headers = {
-        "x-api-version": "2023-08-01",
-        "x-client-id": CASHFREE_APP_ID,
-        "x-client-secret": CASHFREE_SECRET_KEY,
-        "Content-Type": "application/json"
+def check_paytm_status(order_id: str):
+    """User ke 'Check Status' dabane par payment verify karta hai"""
+    paytm_params = {
+        "body": {
+            "mid": PAYTM_MID,
+            "orderId": order_id
+        }
     }
+
     try:
-        response = requests.get(f"{CASHFREE_URL}/{order_id}", headers=headers)
-        if response.status_code == 200:
-            return response.json().get("order_status")  # PAID, ACTIVE, etc.
+        checksum = paytmchecksum.generateSignature(json.dumps(paytm_params["body"]), PAYTM_MERCHANT_KEY)
+        paytm_params["head"] = {"signature": checksum}
+
+        response = requests.post(PAYTM_URL_STATUS, json=paytm_params)
+        res_data = response.json()
+        status = res_data.get("body", {}).get("resultInfo", {}).get("resultStatus")
+        return status  # Returns: "TXN_SUCCESS", "TXN_FAILURE", "PENDING"
     except Exception as e:
-        print(f"Error checking status: {e}")
+        print(f"Error checking Paytm status: {e}")
     return "ERROR"
 
 # ==================================================
@@ -118,35 +140,16 @@ def home_buttons():
     return InlineKeyboardMarkup(keyboard)
 
 # ==================================================
-#                    START / VERIFY
+#                    START COMMAND
 # ==================================================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     users.add(user_id)
     
-    # Handle deep-linking checking payload (ex: /start verify_order123)
-    args = context.args
-    if args and args[0].startswith("verify_"):
-        order_id = args[0].replace("verify_", "")
-        status = check_payment_status(order_id)
-        
-        if status == "PAID":
-            await update.message.reply_text(
-                "<b>🎉 PAYMENT SUCCESSFUL!</b>\n\nAapka premium activation complete ho gaya hai. Join karne ke liye admin ko contact karein ya VIP links generate ho chuke hain.",
-                parse_mode="HTML"
-            )
-            return
-        elif status == "ACTIVE":
-            await update.message.reply_text("⏳ Payment abhi tak complete nahi hui hai. Kripya payment poori karein.")
-            return
-        else:
-            await update.message.reply_text("❌ Payment fail ho gayi ya invalid order ID hai.")
-            return
-
     caption = (
         "<b>🔥 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍 🔥</b>\n\n"
         "<b>🎬 𝟓𝟎𝟎𝟎+ 𝐌𝐌𝐒 𝐕𝐈𝐃𝐄𝐎𝐒</b>\n\n"
-        "<b>💋 𝟐𝟎𝟎𝟎+ 𝐂𝐎𝐔𝐏𝐋𝐄 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n\n"
+        "<b>💋 𝟐𝟎0𝟎+ 𝐂𝐎𝐔𝐏𝐋𝐄 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n\n"
         "<b>🔥 𝟏𝟓𝟎𝟎𝟎+ 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 𝐕𝐈𝐃𝐄𝐎𝐒</b>\n\n"
         "<b>📦 𝟏𝟎𝟎+ 𝐕𝐈𝐏 𝐂𝐎𝐋𝐋𝐄𝐂𝐓𝐈𝐎𝐍𝐒</b>\n\n"
         "<b>⚡ 𝐈𝐍𝐒𝐓𝐀𝐍𝐓 𝐀𝐂𝐂𝐄𝐒𝐒</b>"
@@ -160,21 +163,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # ==================================================
-#                 PREMIUM MENU
+#                 PREMIUM PLAN MENU
 # ==================================================
 async def premium_menu(query):
     keyboard = [
         [InlineKeyboardButton("💎 𝐌𝐒 𝐕!𝐃€𝐎𝐒 - ₹99", callback_data="p1")],
         [InlineKeyboardButton("🔥 €𝐏 𝐕!𝐃€𝐎𝐒 - ₹149", callback_data="p2")],
         [InlineKeyboardButton("📦 𝐀𝐋𝐋 𝐈𝐍 𝐎𝐍𝐄 ( 𝟓𝟎 𝐆𝐑𝐎𝐔𝐏 ) - ₹249", callback_data="p3")],
-        [InlineKeyboardButton("👑 𝐕𝐈𝐏 𝐀𝐋𝐋 ( 𝟏𝟎0𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹499", callback_data="p4")],
+        [InlineKeyboardButton("👑 𝐕𝐈𝐏 𝐀𝐋𝐋 ( 𝟏𝟎𝟎𝐊+ 𝐕!𝐃€𝐎𝐒 ) - ₹499", callback_data="p4")],
         [InlineKeyboardButton("⬅️ 𝐁𝐀𝐂𝐊", callback_data="home")]
     ]
 
     await query.message.edit_media(
         media=InputMediaPhoto(
             media=PREMIUM_IMAGE,
-            caption="<b>💎 𝐒𝐄𝐋𝐄𝐂𝐓 𝐘𝐎𝐔𝐑 𝐏𝐋𝐀𝐍 💎</b>",
+            caption="<b>💎 𝐒𝐄𝐋𝐄𝐂𝐓 𝐘𝐎𝐔Ｒ 𝐏𝐋𝐀𝐍 💎</b>",
             parse_mode="HTML"
         ),
         reply_markup=InlineKeyboardMarkup(keyboard)
@@ -204,63 +207,26 @@ async def home_page(query):
     )
 
 # ==================================================
-#               DYNAMIC CASHFREE LIVE PAGE
+#               PAYTM LINK GENERATION PAGE
 # ==================================================
-
-def create_cashfree_order(order_id: str, amount: float, user_id: int, user_name: str):
-    """Cashfree PG LIVE API ke liye real user details ke sath link banata hai"""
-    headers = {
-        "x-api-version": "2023-08-01",
-        "x-client-id": CASHFREE_APP_ID,
-        "x-client-secret": CASHFREE_SECRET_KEY,
-        "Content-Type": "application/json"
-    }
-    
-    # Live me email format valid hona chahiye, isliye unique email generator lagaya hai
-    clean_name = "".join(e for e in user_name if e.isalnum()) or "TelegramUser"
-    user_email = f"{clean_name.lower()}_{user_id}@tgbot.com"
-    
-    payload = {
-        "order_id": order_id,
-        "order_amount": float(amount),
-        "order_currency": "INR",
-        "customer_details": {
-            "customer_id": f"USER_{user_id}",
-            "customer_phone": "9000000000", # Live API active validation number series format
-            "customer_email": user_email
-        },
-        "order_meta": {
-            "return_url": f"https://t.me/your_bot_username?start=verify_{order_id}" # <--- Yahan apne bot ka username likhein
-        }
-    }
-    
-    try:
-        response = requests.post(CASHFREE_URL, json=payload, headers=headers)
-        if response.status_code == 200:
-            return response.json().get("payment_link")
-        else:
-            print(f"🔴 Cashfree Live Error: {response.status_code} - {response.text}")
-    except Exception as e:
-        print(f"❌ Connection Error: {e}")
-    return None
-
-async def cashfree_pay_page(query, amount):
-    user = query.from_user
-    user_id = user.id
-    user_name = user.first_name or "Customer"
-    
+async def paytm_pay_page(query, amount):
+    user_id = query.from_user.id
     order_id = f"ORDER_{uuid.uuid4().hex[:10].upper()}"
     
-    payment_link = create_cashfree_order(order_id, amount, user_id, user_name)
+    # Paytm link banayein
+    payment_link = create_paytm_order(order_id, amount, user_id)
     
     if not payment_link:
-        await query.message.reply_text("❌ Payment link generate nahi ho paya. Kripya thodi der baad try karein ya Live keys/account status check karein.")
+        await query.message.reply_text(
+            "❌ Paytm payment link generate nahi ho paya.\n"
+            "Kripya check karein ki aapki Merchant Keys sahi hain aur account active hai."
+        )
         return
 
     active_orders[order_id] = {"user_id": user_id, "amount": amount}
 
     keyboard = [
-        [InlineKeyboardButton("💳 𝐏𝐀𝐘 𝐍𝐎𝐖 (𝐔𝐏𝐈 / 𝐂𝐀𝐑𝐃)", url=payment_link)],
+        [InlineKeyboardButton("💳 𝐏𝐀𝐘 𝐍𝐎𝐖 (𝐏𝐀Y𝐓𝐌 / 𝐔𝐏𝐈)", url=payment_link)],
         [InlineKeyboardButton("🔄 𝐂𝐇𝐄𝐂𝐊 𝐒𝐓𝐀𝐓𝐔𝐒", callback_data=f"check_{order_id}")],
         [InlineKeyboardButton("⬅️ 𝐁𝐀𝐂𝐊", callback_data="back_to_plans")]
     ]
@@ -271,7 +237,8 @@ async def cashfree_pay_page(query, amount):
             caption=(
                 f"<b>💸 𝐏𝐋𝐀𝐍: ₹{amount}</b>\n\n"
                 f"<b>🆔 Order ID:</b> <code>{order_id}</code>\n\n"
-                f"👉 Niche diye gye link se payment safely secure kijiye. Pay karne ke baad <b>CHECK STATUS</b> button dabayein."
+                f"👉 <b>PAY NOW</b> par click karke kisi bhi UPI app ya Paytm se safe payment karein.\n\n"
+                f"Payment complete karne ke baad niche <b>CHECK STATUS</b> par click karein."
             ),
             parse_mode="HTML"
         ),
@@ -288,12 +255,11 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         f"📊 <b>BOT STATS</b>\n\n"
         f"👥 Total Users: {len(users)}\n\n"
-        f"💎 ₹99 Generated: {plan_99}\n"
-        f"🔥 ₹149 Generated: {plan_149}\n"
-        f"📦 ₹249 Generated: {plan_249}\n"
-        f"👑 ₹499 Generated: {plan_499}"
+        f"💎 ₹99 Plan: {plan_99} clicks\n"
+        f"🔥 ₹149 Plan: {plan_149} clicks\n"
+        f"📦 ₹249 Plan: {plan_249} clicks\n"
+        f"👑 ₹499 Plan: {plan_499} clicks"
     )
-
     await update.message.reply_text(text, parse_mode="HTML")
 
 # ==================================================
@@ -313,36 +279,40 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "back_to_plans":
         await premium_menu(query)
         
-    # Plan triggers
     elif data == "p1":
         plan_99 += 1
-        await cashfree_pay_page(query, 99)
+        await paytm_pay_page(query, 99)
     elif data == "p2":
         plan_149 += 1
-        await cashfree_pay_page(query, 149)
+        await paytm_pay_page(query, 149)
     elif data == "p3":
         plan_249 += 1
-        await cashfree_pay_page(query, 249)
+        await paytm_pay_page(query, 249)
     elif data == "p4":
         plan_499 += 1
-        await cashfree_pay_page(query, 499)
+        await paytm_pay_page(query, 499)
         
-    # Manual status check handling from button
     elif data.startswith("check_"):
         order_id = data.replace("check_", "")
-        status = check_payment_status(order_id)
+        status = check_paytm_status(order_id)
         
-        if status == "PAID":
+        if status == "TXN_SUCCESS":
+            # Yahan payment verify ho chuki hai
             await query.message.edit_caption(
-                caption="<b>🎉 PAYMENT VERIFIED SUCCESSFULLY!</b>\n\nAapko full group ka instant access diya jata hai. Any issue contact support.",
+                caption="<b>🎉 PAYMENT VERIFIED SUCCESSFULLY!</b>\n\nAapka premium access active kar diya gaya hai. Join karne ke liye niche click karein.",
                 parse_mode="HTML",
-                reply_markup=None
+                reply_markup=None  # Aap chahein toh yahan apna channel join link button de sakte hain
             )
-        else:
-            # Alert context user standard query verification process
+        elif status == "PENDING":
             await context.bot.answer_callback_query(
                 callback_query_id=query.id,
-                text="❌ Payment abhi tak receive nahi hui hai. Kripya process complete karein.",
+                text="⏳ Payment abhi pending hai. Kripya process complete karke 10-15 seconds baad dobara check karein.",
+                show_alert=True
+            )
+        else:
+            await context.bot.answer_callback_query(
+                callback_query_id=query.id,
+                text="❌ Payment receive nahi hui ya transaction fail ho gaya hai.",
                 show_alert=True
             )
 
@@ -355,5 +325,5 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("stats", stats))
 app.add_handler(CallbackQueryHandler(button_handler))
 
-print("✅ BOT IS RUNNING SUCCESSFULLY WITH CASHFREE INTEGRATION...")
+print("✅ BOT IS RUNNING SUCCESSFULLY WITH PAYTM GATEWAY INTEGRATION...")
 app.run_polling()
