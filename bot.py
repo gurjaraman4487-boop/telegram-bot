@@ -40,7 +40,7 @@ PAYTM_URL_STATUS = f"https://securegw-stage.paytm.in/v3/order/status"
 # ==================================================
 #                    BOT USERNAME
 # ==================================================
-BOT_USERNAME = "YOUR_BOT_USERNAME_HERE"  # Bina @ ke likhein
+BOT_USERNAME = "https://t.me/Pre_mmsbot"  # Bina @ ke likhein
 
 # ==================================================
 #                    MAIN IMAGES
