@@ -1,7 +1,7 @@
 import uuid
 import json
 import requests
-import paytmchecksum  # Paytm security library
+import paytmchecksum  # <-- Check karo ab ekdam sahi hai: p-a-y-t-m-c-h-e-c-k-s-u-m
 from telegram import (
     Update,
     InlineKeyboardButton,
