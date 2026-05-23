@@ -32,10 +32,8 @@ CASHFREE_APP_ID = "77152048f182445d66a3602069025177"
 CASHFREE_SECRET_KEY = "cfsk_ma_prod_1d43da257fdf34ee6a41ee8d5741444e_bd4de1ad"
 CASHFREE_ENV = "PROD"  # PROD ke liye "PROD" likhein
 
-if CASHFREE_ENV == "TEST":
-    CASHFREE_URL = "https://sandbox.cashfree.com/pg/orders"
-else:
-    CASHFREE_URL = "https://api.cashfree.com/pg/orders"
+CASHFREE_ENV = "PROD"
+CASHFREE_URL = "https://api.cashfree.com/pg/orders"
 
 # ==================================================
 #                    IMAGES
