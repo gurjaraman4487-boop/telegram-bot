@@ -30,7 +30,7 @@ ADMIN_USERNAME = "https://t.me/dealer_x"
 # Education purpose ke liye test credentials default hain. Production me change karein.
 CASHFREE_APP_ID = "77152048f182445d66a3602069025177"
 CASHFREE_SECRET_KEY = "cfsk_ma_prod_1d43da257fdf34ee6a41ee8d5741444e_bd4de1ad"
-CASHFREE_ENV = "TEST"  # PROD ke liye "PROD" likhein
+CASHFREE_ENV = "PROD"  # PROD ke liye "PROD" likhein
 
 if CASHFREE_ENV == "TEST":
     CASHFREE_URL = "https://sandbox.cashfree.com/pg/orders"
@@ -209,22 +209,59 @@ async def home_page(query):
     )
 
 # ==================================================
-#               DYNAMIC CASHFREE PAGE
+#               DYNAMIC CASHFREE LIVE PAGE
 # ==================================================
-async def cashfree_pay_page(query, amount):
-    user_id = query.from_user.id
+
+def create_cashfree_order(order_id: str, amount: float, user_id: int, user_name: str):
+    """Cashfree PG LIVE API ke liye real user details ke sath link banata hai"""
+    headers = {
+        "x-api-version": "2023-08-01",
+        "x-client-id": CASHFREE_APP_ID,
+        "x-client-secret": CASHFREE_SECRET_KEY,
+        "Content-Type": "application/json"
+    }
     
-    # Unique Order ID generation
+    # Live me email format valid hona chahiye, isliye unique email generator lagaya hai
+    clean_name = "".join(e for e in user_name if e.isalnum()) or "TelegramUser"
+    user_email = f"{clean_name.lower()}_{user_id}@tgbot.com"
+    
+    payload = {
+        "order_id": order_id,
+        "order_amount": float(amount),
+        "order_currency": "INR",
+        "customer_details": {
+            "customer_id": f"USER_{user_id}",
+            "customer_phone": "9000000000", # Live API active validation number series format
+            "customer_email": user_email
+        },
+        "order_meta": {
+            "return_url": f"https://t.me/your_bot_username?start=verify_{order_id}" # <--- Yahan apne bot ka username likhein
+        }
+    }
+    
+    try:
+        response = requests.post(CASHFREE_URL, json=payload, headers=headers)
+        if response.status_code == 200:
+            return response.json().get("payment_link")
+        else:
+            print(f"🔴 Cashfree Live Error: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"❌ Connection Error: {e}")
+    return None
+
+async def cashfree_pay_page(query, amount):
+    user = query.from_user
+    user_id = user.id
+    user_name = user.first_name or "Customer"
+    
     order_id = f"ORDER_{uuid.uuid4().hex[:10].upper()}"
     
-    # Cashfree API call se live payment link ready karein
-    payment_link = create_cashfree_order(order_id, amount, user_id)
+    payment_link = create_cashfree_order(order_id, amount, user_id, user_name)
     
     if not payment_link:
-        await query.message.reply_text("❌ Payment link generate nahi ho paya. Kripya baad me try karein.")
+        await query.message.reply_text("❌ Payment link generate nahi ho paya. Kripya thodi der baad try karein ya Live keys/account status check karein.")
         return
 
-    # Database state record backup track ke liye
     active_orders[order_id] = {"user_id": user_id, "amount": amount}
 
     keyboard = [
