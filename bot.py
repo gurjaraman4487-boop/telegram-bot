@@ -1,34 +1,30 @@
 import os
 import uuid
 import logging
-from dotenv import load_dotenv
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# ======================== ENVIRONMENT VARIABLES ========================
-load_dotenv()  # .env file से values लोड करें (local run के लिए)
+# ==================== 🔴 YAHAN APNI VALUES DAALO 🔴 ====================
+TOKEN = "YOUR_BOT_TOKEN_HERE"              # BotFather se lo
+ADMIN_ID = 6648941928                       # Apni Telegram ID (integer)
+BOT_USERNAME = "your_bot_username_here"     # bina @ ke, jaise "myvideobot"
+CASHFREE_APP_ID = "77152048f182445d66a3602069025177"   # Jo aapke paas hai
+CASHFREE_SECRET_KEY = "cfsk_ma_prod_1d43da257fdf34ee6a41ee8d5741444e_bd4de1ad"
+CASHFREE_ENV = "TEST"                        # "TEST" ya "PROD"
+# =====================================================================
 
-TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID"))          # Integer में बदलना ज़रूरी है
-BOT_USERNAME = os.getenv("BOT_USERNAME")
-
-CASHFREE_APP_ID = os.getenv("CASHFREE_APP_ID")
-CASHFREE_SECRET_KEY = os.getenv("CASHFREE_SECRET_KEY")
-CASHFREE_ENV = os.getenv("CASHFREE_ENV", "TEST")  # TEST or PROD
-
-START_IMAGE = os.getenv("START_IMAGE", "https://i.postimg.cc/MKWZn3Lv/IMG-20260521-163611-172.jpg")
-PREMIUM_IMAGE = os.getenv("PREMIUM_IMAGE", "https://i.postimg.cc/x89kTfHG/IMG-20260521-164434-789.jpg")
-DEMO_CHANNEL = os.getenv("DEMO_CHANNEL", "https://t.me/demochannlink")
-INFO_CHANNEL = os.getenv("INFO_CHANNEL", "https://t.me/howtogetpre")
-
-# Cashfree URL based on environment
 if CASHFREE_ENV == "TEST":
     CASHFREE_URL = "https://sandbox.cashfree.com/pg/orders"
 else:
     CASHFREE_URL = "https://api.cashfree.com/pg/orders"
 
-# ======================== GLOBALS ========================
+# Images (badal sakte ho)
+START_IMAGE = "https://i.postimg.cc/MKWZn3Lv/IMG-20260521-163611-172.jpg"
+PREMIUM_IMAGE = "https://i.postimg.cc/x89kTfHG/IMG-20260521-164434-789.jpg"
+DEMO_CHANNEL = "https://t.me/demochannlink"
+INFO_CHANNEL = "https://t.me/howtogetpre"
+
 users = set()
 stats = {99: 0, 149: 0, 249: 0, 499: 0}
 active_orders = {}
@@ -36,8 +32,7 @@ active_orders = {}
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ======================== HELPERS ========================
-def create_cashfree_order(order_id: str, amount: float, user_id: int, username: str) -> str | None:
+def create_cashfree_order(order_id, amount, user_id, username):
     headers = {
         "x-api-version": "2023-08-01",
         "x-client-id": CASHFREE_APP_ID,
@@ -69,7 +64,7 @@ def create_cashfree_order(order_id: str, amount: float, user_id: int, username: 
         logger.error(f"Connection error: {e}")
     return None
 
-def check_payment_status(order_id: str) -> str:
+def check_payment_status(order_id):
     headers = {
         "x-api-version": "2023-08-01",
         "x-client-id": CASHFREE_APP_ID,
@@ -83,7 +78,6 @@ def check_payment_status(order_id: str) -> str:
         logger.error(f"Status check error: {e}")
     return "ERROR"
 
-# ======================== KEYBOARDS ========================
 def home_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💎 𝐆𝐄𝐓 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 💎", callback_data="premium")],
@@ -95,32 +89,26 @@ def plans_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💎 MS VIDEOS - ₹99", callback_data="plan_99")],
         [InlineKeyboardButton("🔥 EP VIDEOS - ₹149", callback_data="plan_149")],
-        [InlineKeyboardButton("📦 ALL IN ONE ( 50+ Group ) - ₹249", callback_data="plan_249")],
-        [InlineKeyboardButton("👑 VIP ALL ( 100+ Group ) - ₹499", callback_data="plan_499")],
+        [InlineKeyboardButton("📦 ALL IN ONE - ₹249", callback_data="plan_249")],
+        [InlineKeyboardButton("👑 VIP ALL - ₹499", callback_data="plan_499")],
         [InlineKeyboardButton("⬅️ BACK", callback_data="home")]
     ])
 
-# ======================== HANDLERS ========================
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(update, context):
     user = update.effective_user
     users.add(user.id)
-
     if context.args and context.args[0].startswith("verify_"):
         order_id = context.args[0].replace("verify_", "")
         status = check_payment_status(order_id)
         if status == "PAID":
-            await update.message.reply_text(
-                "✅ **PAYMENT SUCCESSFUL!**\n\nआपका प्रीमियम एक्टिवेट हो गया है। अब आप VIP ग्रुप जॉइन कर सकते हैं।",
-                parse_mode="Markdown"
-            )
+            await update.message.reply_text("✅ **PAYMENT SUCCESSFUL!**\n\nआपका प्रीमियम एक्टिवेट हो गया है।", parse_mode="Markdown")
         else:
-            await update.message.reply_text("❌ Payment pending or failed. कृपया पेमेंट पूरा करें या सपोर्ट से संपर्क करें।")
+            await update.message.reply_text("❌ Payment pending or failed. Contact support.")
         return
-
     caption = "🔥 *PREMIUM VIDEO COLLECTION* 🔥\n\n🎬 5000+ MMS VIDEOS\n💋 2000+ COUPLE COLLECTION\n🔥 15000+ PREMIUM VIDEOS\n📦 100+ VIP COLLECTIONS\n⚡ INSTANT ACCESS"
     await update.message.reply_photo(photo=START_IMAGE, caption=caption, parse_mode="Markdown", reply_markup=home_keyboard())
 
-async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def stats_command(update, context):
     if update.effective_user.id != ADMIN_ID:
         await update.message.reply_text("⛔ Unauthorized.")
         return
@@ -128,11 +116,10 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = f"📊 *BOT STATS*\n\n👥 Total Users: {total_users}\n💎 ₹99 : {stats[99]}\n🔥 ₹149: {stats[149]}\n📦 ₹249: {stats[249]}\n👑 ₹499: {stats[499]}"
     await update.message.reply_text(text, parse_mode="Markdown")
 
-async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def button_callback(update, context):
     query = update.callback_query
     await query.answer()
     data = query.data
-
     if data == "home":
         await query.message.edit_media(media=InputMediaPhoto(media=START_IMAGE, caption="🔥 *PREMIUM VIDEO COLLECTION* 🔥", parse_mode="Markdown"), reply_markup=home_keyboard())
     elif data == "premium":
@@ -146,7 +133,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not payment_link:
             await query.message.reply_text("❌ Payment link generate failed. Try again later.")
             return
-        active_orders[order_id] = {"user_id": user.id, "amount": amount, "link": payment_link}
+        active_orders[order_id] = {"user_id": user.id, "amount": amount}
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("💳 PAY NOW", url=payment_link)],
             [InlineKeyboardButton("🔄 CHECK STATUS", callback_data=f"check_{order_id}")],
@@ -161,11 +148,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await query.answer("❌ Payment still pending. Please complete the payment.", show_alert=True)
 
-# ======================== MAIN ========================
 def main():
-    if not all([TOKEN, ADMIN_ID, BOT_USERNAME, CASHFREE_APP_ID, CASHFREE_SECRET_KEY]):
-        logger.error("Missing environment variables! Check your .env or Railway variables.")
-        return
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("stats", stats_command))
