@@ -95,8 +95,8 @@ def plans_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💎 MS VIDEOS - ₹99", callback_data="plan_99")],
         [InlineKeyboardButton("🔥 EP VIDEOS - ₹149", callback_data="plan_149")],
-        [InlineKeyboardButton("📦 ALL IN ONE - ₹249", callback_data="plan_249")],
-        [InlineKeyboardButton("👑 VIP ALL - ₹499", callback_data="plan_499")],
+        [InlineKeyboardButton("📦 ALL IN ONE ( 50+ Group ) - ₹249", callback_data="plan_249")],
+        [InlineKeyboardButton("👑 VIP ALL ( 100+ Group ) - ₹499", callback_data="plan_499")],
         [InlineKeyboardButton("⬅️ BACK", callback_data="home")]
     ])
 
