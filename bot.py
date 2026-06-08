@@ -148,7 +148,7 @@ async def premium_menu(query):
 
         [
             InlineKeyboardButton(
-                "ðŸ”¥ â‚¬ð ð•!ðƒâ‚¬ðŽð’ - â‚¹149",
+                "ðŸ”¥ ð‘â‚¬ð ð•!ðƒâ‚¬ðŽð’ - â‚¹149",
                 callback_data="p2"
             )
         ],
@@ -227,7 +227,7 @@ async def qr_page(query, qr_image, amount):
 
         [
             InlineKeyboardButton(
-                "âœ… ð†ð„ð“ ð€ð‚ð‚ð„ð’ð’",
+                "âœ… ðˆ ð‡ð€ð•ð„ ðð€ðˆðƒ",
                 callback_data="send_ss"
             )
         ],
